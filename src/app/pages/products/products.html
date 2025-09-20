@@ -1,0 +1,135 @@
+<section class="p-4">
+  <header class="flex items-center justify-between mb-3">
+    <h2 class="text-lg font-semibold">Produtos</h2>
+    <button type="button" class="btn btn-primary" (click)="onNew()">Novo</button>
+  </header>
+
+  <div class="grid gap-4 md:grid-cols-[1.2fr_.8fr]">
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <strong>Lista</strong>
+        <button type="button" class="btn" (click)="refresh()">Atualizar</button>
+      </div>
+
+      @if (loading()) {
+      <div class="text-gray-600">Carregando…</div>
+      } @else if (products().length === 0) {
+      <div class="text-gray-600">Nenhum produto cadastrado</div>
+      } @else {
+      <ul class="divide-y divide-slate-100">
+        @for (p of products(); track p.id) {
+        <li class="flex items-center justify-between py-2">
+          <div class="min-w-0 flex-1">
+            <div class="font-medium flex items-center gap-2">
+              {{ p.name }}
+              <span class="chip" [class.inactive]="p.active === 'false' || p.active === false">
+                {{ p.active === 'false' || p.active === false ? 'Inativo' : 'Ativo' }}
+              </span>
+            </div>
+            <div class="text-sm text-gray-600">Preço: R$ {{ fmt(p.price) }}</div>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" class="btn" (click)="onEdit(p)">Editar</button>
+            <button type="button" class="btn btn-danger" (click)="onDelete(p)">Excluir</button>
+          </div>
+        </li>
+        }
+      </ul>
+      }
+    </div>
+
+    <div class="card">
+      <div class="flex items-center justify-between mb-2">
+        <strong>{{ editMode() ? 'Editar' : 'Novo' }} Produto</strong>
+        @if (editMode()) {
+        <button type="button" class="btn" (click)="onCancelEdit()">Cancelar</button>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3">
+        <label class="grid gap-1">
+          <span>Nome</span>
+          <input class="input" type="text" formControlName="name" />
+        </label>
+
+        <label class="grid gap-1">
+          <span>Preço</span>
+          <input class="input" type="number" step="0.01" formControlName="price" />
+        </label>
+
+        <label class="inline-flex items-center gap-2">
+          <input type="checkbox" formControlName="active" />
+          <span>Ativo</span>
+        </label>
+
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+            {{ editMode() ? 'Salvar' : 'Adicionar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <p-dialog
+    header="Novo Produto"
+    [visible]="showDialog()"
+    (visibleChange)="showDialog.set($event)"
+    [modal]="true"
+    [breakpoints]="{ '960px': '75vw', '640px': '90vw' }"
+    [style]="{ width: '40vw' }"
+    [dismissableMask]="true"
+  >
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3 p-2">
+      <label class="grid gap-1">
+        <span>Nome</span>
+        <input class="input" type="text" formControlName="name" />
+      </label>
+      <label class="grid gap-1">
+        <span>Preço</span>
+        <input class="input" type="number" step="0.01" formControlName="price" />
+      </label>
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" formControlName="active" />
+        <span>Ativo</span>
+      </label>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="btn" (click)="showDialog.set(false)">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </p-dialog>
+
+  <p-drawer
+    [visible]="showSheet()"
+    (visibleChange)="showSheet.set($event)"
+    position="bottom"
+    [dismissible]="true"
+  >
+    <div class="p-3">
+      <h3 class="text-lg font-semibold mb-2">Novo Produto</h3>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3">
+        <label class="grid gap-1">
+          <span>Nome</span>
+          <input class="input" type="text" formControlName="name" />
+        </label>
+        <label class="grid gap-1">
+          <span>Preço</span>
+          <input class="input" type="number" step="0.01" formControlName="price" />
+        </label>
+        <label class="inline-flex items-center gap-2">
+          <input type="checkbox" formControlName="active" />
+          <span>Ativo</span>
+        </label>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn" (click)="showSheet.set(false)">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </p-drawer>
+</section>

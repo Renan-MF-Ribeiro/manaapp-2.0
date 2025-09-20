@@ -1,0 +1,17 @@
+<nav class="nav" aria-label="Bottom navigation">
+  <div class="bar">
+    <div
+      aria-hidden
+      class="indicator"
+      [style.width.%]="100 / items.length"
+      [style.transform]="'translateX(' + activeIndex() * 100 + '%)'"
+    ></div>
+
+    @for (it of items; track it.href; let idx = $index) {
+    <a [routerLink]="it.href" routerLinkActive="active" aria-current="page" class="link">
+      <span class="icon">{{ it.icon }}</span>
+      <span class="label">{{ it.label }}</span>
+    </a>
+    }
+  </div>
+</nav>

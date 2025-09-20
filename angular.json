@@ -26,9 +26,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["node_modules/primeicons/primeicons.css", "src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -80,12 +78,13 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["node_modules/primeicons/primeicons.css", "src/styles.css"]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "b8635b55-66a0-4220-8ae8-b591b968bc20"
   }
 }
