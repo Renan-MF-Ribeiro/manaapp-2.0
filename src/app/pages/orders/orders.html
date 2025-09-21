@@ -1,0 +1,204 @@
+<section class="min-h-screen px-4 pt-4 container-mobile pb-32">
+  <h2 class="text-lg font-semibold mb-3">Novo Pedido</h2>
+
+  <p-drawer
+    [visible]="drawerOpen()"
+    (visibleChange)="drawerOpen.set($event)"
+    position="bottom"
+    [modal]="true"
+    [dismissible]="true"
+    [blockScroll]="true"
+    [showCloseIcon]="false"
+    [style]="{ height: '90vh', background: '#E6F5FF' }"
+  >
+    <div class="p-4 flex justify-between items-center">
+      <h3 class="text-lg font-semibold">Novo Pedido</h3>
+      <button (click)="drawerOpen.set(false)" aria-label="Fechar" class="text-2xl p-2">
+        <i class="pi pi-times" style="font-size: 1rem" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="py-2">
+      @if (products().length > 0) {
+      <p-carousel
+        [value]="products()"
+        [numVisible]="numProductsVisible()"
+        [numScroll]="1"
+        [circular]="true"
+      >
+        <ng-template let-p pTemplate="item">
+          <button
+            (click)="addToCart(p.id, 1)"
+            class="text-left px-2 py-1 bg-white rounded shadow flex flex-col justify-between h-full hover:shadow-md w-44"
+            [attr.aria-label]="'Adicionar ' + p.name"
+          >
+            <div class="font-medium">{{ p.name }}</div>
+            <div class="text-sm text-gray-500 mb-2">R$ {{ fmt(p.price) }}</div>
+          </button>
+        </ng-template>
+      </p-carousel>
+      } @else {
+      <div class="text-center text-gray-500">Nenhum produto ativo cadastrado</div>
+      }
+    </div>
+
+    <div class="px-5 flex flex-col">
+      <div class="bg-white p-3 rounded mb-4">
+        <h3 class="font-medium mb-2">Carrinho</h3>
+        @for (it of cart(); track it.productId) { @if (getProduct(it.productId); as p) {
+        <div class="flex justify-between">
+          <div class="flex gap-2 items-center">
+            <button
+              (click)="removeOne(it.productId)"
+              class="flex items-center justify-center 6 bg-gray-200 rounded"
+              [attr.aria-label]="'Diminuir ' + p.name + ' do carrinho'"
+            >
+              <i class="pi pi-minus"></i>
+            </button>
+            <p>{{ p.name }} x{{ it.qty }}</p>
+          </div>
+          <div>R$ {{ fmt(p.price * it.qty) }}</div>
+        </div>
+        } }
+
+        <div class="my-2 font-semibold">Total: R$ {{ fmt(total()) }}</div>
+        @if (previousPaymentsTotal() > 0) {
+        <div class="text-sm text-gray-600 mb-1">
+          Pago anteriormente: R$ {{ fmt(previousPaymentsTotal()) }}
+        </div>
+        <div class="text-sm text-gray-700 mt-1">
+          Valor restante: R$ {{ fmt(Math.max(0, total() - previousPaymentsTotal())) }}
+        </div>
+        }
+      </div>
+
+      <div class="bg-white p-3 rounded mb-4">
+        <h3 class="font-medium mb-2">Pagamento</h3>
+        <div class="space-y-2">
+          <select [formControl]="payForm.controls.method" class="w-full border p-2 rounded">
+            <option value="cash">{{ PaymentMethodDisplay.cash }}</option>
+            <option value="pix">{{ PaymentMethodDisplay.pix }}</option>
+            <option value="card">{{ PaymentMethodDisplay.card }}</option>
+            <option value="tab">{{ PaymentMethodDisplay.tab }}</option>
+          </select>
+
+          <p-autoComplete
+            [suggestions]="clientSuggestions()"
+            [formControl]="payForm.controls.clientName"
+            (completeMethod)="completeClients($event.query)"
+            placeholder="Nome do cliente"
+            [dropdown]="true"
+            inputStyleClass="w-full border p-2 rounded"
+            class="w-full"
+          />
+
+          <p-inputNumber
+            [formControl]="payForm.controls.amount"
+            inputId="payment-amount"
+            mode="currency"
+            locale="pt-BR"
+            currency="BRL"
+            inputStyleClass="w-full border p-2 rounded"
+            placeholder="Valor pago"
+            [minFractionDigits]="2"
+            [maxFractionDigits]="2"
+          />
+        </div>
+      </div>
+
+      <button (click)="finalize()" class="btn btn-primary w-full">Finalizar pedido</button>
+    </div>
+  </p-drawer>
+
+  <button
+    (click)="openNew()"
+    aria-label="Criar pedido"
+    class="fixed right-4 bottom-24 z-10 bg-background-dark text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl"
+    title="Criar pedido"
+  >
+    <i class="pi pi-plus" aria-hidden="true"></i>
+  </button>
+
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <h3 class="text-md font-medium">Histórico</h3>
+      <div class="flex items-center gap-2">
+        <p-toggleButton
+          [onLabel]="'Pendentes'"
+          [offLabel]="'Todos'"
+          [ngModel]="showPendingOnly()"
+          (onChange)="showPendingOnly.set(!!$event.checked)"
+        />
+      </div>
+    </div>
+
+    @for (o of filteredOrders(); track o.id) {
+    <div class="w-full bg-white p-3 rounded shadow">
+      <div class="flex justify-between items-start">
+        <button (click)="edit(o)" class="text-left cursor-pointer">
+          <div class="text-left">
+            Pedido {{ o.id }}{{ o.clientName ? ' - ' + o.clientName : '' }}
+          </div>
+          <div class="text-sm text-gray-500">{{ createdAt(o.createdAt) }}</div>
+        </button>
+        <div class="flex items-center gap-2">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-pencil"
+            class="p-button-text"
+            (click)="edit(o)"
+            [attr.aria-label]="'Editar pedido ' + o.id"
+          ></button>
+          <button
+            pButton
+            type="button"
+            icon="pi pi-trash"
+            class="p-button-text p-button-danger"
+            (click)="remove(o)"
+            [attr.aria-label]="'Remover pedido ' + o.id"
+          ></button>
+        </div>
+      </div>
+
+      <div class="text-sm mt-2">Itens: {{ o.items.length }}</div>
+      <div class="text-sm">Total: R$ {{ fmt(o.total) }}</div>
+      @if (o.payments.length > 0) {
+      <div class="text-sm">Pago: R$ {{ fmt(paymentsTotal(o.payments)) }}</div>
+      }
+      <div class="text-sm">Status: {{ OrderStatusDisplay[o.status] }}</div>
+
+      @if (o.payments.length > 0) {
+      <div class="mt-3">
+        <p-accordion>
+          <p-accordion-panel>
+            <p-accordion-header>{{ 'Pagamentos (' + o.payments.length + ')' }}</p-accordion-header>
+            <div class="space-y-2">
+              @for (p of o.payments; track p.id) {
+              <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
+                <div>
+                  <div class="font-medium">{{ PaymentMethodDisplay[p.method] }}</div>
+                  <div class="text-sm">R$ {{ fmt(p.amount || 0) }}</div>
+                  @if (p.clientId) {
+                  <div class="text-sm">Cliente: {{ p.clientId }}</div>
+                  }
+                </div>
+                <div>
+                  <button
+                    pButton
+                    type="button"
+                    icon="pi pi-times"
+                    class="p-button-text p-button-danger"
+                    (click)="removePayment(o, p.id)"
+                  ></button>
+                </div>
+              </div>
+              }
+            </div>
+          </p-accordion-panel>
+        </p-accordion>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</section>

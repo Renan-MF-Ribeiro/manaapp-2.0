@@ -55,6 +55,10 @@ export class ProductsPage implements OnInit {
     this.editMode.set(false);
     this.editingId = null;
     this.form.reset({ name: '', price: 0, active: true });
+    this.toggleDisplayMode();
+  }
+
+  private toggleDisplayMode() {
     const isMobile =
       typeof window !== 'undefined' &&
       window.matchMedia &&
@@ -71,6 +75,7 @@ export class ProductsPage implements OnInit {
     this.editingId = p.id;
     const activeBool = !(p.active === 'false' || p.active === false);
     this.form.reset({ name: p.name, price: p.price, active: activeBool });
+    this.toggleDisplayMode();
   }
 
   protected async onDelete(p: Product) {
@@ -97,13 +102,14 @@ export class ProductsPage implements OnInit {
           active: active ? 'true' : 'false',
           createdAt: new Date().toISOString(),
         } as Product);
+        this.showDialog.set(false);
+        this.showSheet.set(false);
       } else {
         await this.productsService.save({ name, price, active });
         this.showDialog.set(false);
         this.showSheet.set(false);
       }
       await this.refresh();
-      this.onNew();
     } finally {
       this.saving.set(false);
     }

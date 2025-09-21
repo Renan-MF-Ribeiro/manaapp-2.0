@@ -48,3 +48,8 @@
     background: #fee2e2;
     color: #991b1b;
 }
+
+::ng-deep .p-drawer-bottom {
+    height: auto !important;
+    @apply p-3
+}

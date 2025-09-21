@@ -25,10 +25,10 @@ export class ProductsService {
     const createdAt = product.createdAt ?? new Date().toISOString();
     const id = product.id || crypto.randomUUID();
     const item: Product = {
-      ...(product as any),
+      ...product,
       id,
       createdAt,
-      active: (product as any).active ?? 'true',
+      active: product.active ? 'true' : 'false',
     };
     const table = await getTable('product');
     return table.add(item);

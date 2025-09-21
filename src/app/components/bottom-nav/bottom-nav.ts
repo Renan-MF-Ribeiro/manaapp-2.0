@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -12,7 +19,7 @@ type NavItem = { label: string; href: string; icon: string };
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
 })
-export class BottomNavComponent {
+export class BottomNavComponent implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly items: NavItem[] = [
@@ -23,8 +30,15 @@ export class BottomNavComponent {
     { label: 'Histórico', href: '/cash-history', icon: '📜' },
   ];
 
+  ngOnInit() {
+    this.router.events.subscribe(() => {
+      this.currentURL.set(this.router.url);
+    });
+  }
+  protected readonly currentURL = signal(this.router.url);
+
   protected readonly activeIndex = computed(() => {
-    const url = this.router.url || '';
+    const url = this.currentURL() || '';
     const idx = this.items.findIndex((it) => url.startsWith(it.href));
     return idx >= 0 ? idx : 0;
   });
